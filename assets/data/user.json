@@ -1,0 +1,45 @@
+{
+  "id": "u1",
+  "image": "https://randomuser.me/api/portraits/men/44.jpg",
+  "name": "Lee Fuller",
+  "posts": [
+    {
+      "id": "p2",
+      "createdAt": "10 m",
+      "User": {
+        "id": "u1",
+        "image": "https://randomuser.me/api/portraits/men/44.jpg",
+        "name": "Lee Fuller"
+      },
+      "description": "Today we launched another rocket 🚀",
+      "numberOfLikes": 312,
+      "numberOfShares": 54
+    },
+    {
+      "id": "p5",
+      "createdAt": "1 d",
+      "User": {
+        "id": "u1",
+        "image": "https://randomuser.me/api/portraits/men/44.jpg",
+        "name": "Lee Fuller"
+      },
+      "description": "Merch for the Real Developers",
+      "image": "https://picsum.photos/id/45/200/300",
+      "numberOfLikes": 54,
+      "numberOfShares": 8
+    },
+    {
+      "id": "p6",
+      "createdAt": "1 d",
+      "User": {
+        "id": "u1",
+        "image": "https://randomuser.me/api/portraits/men/44.jpg",
+        "name": "Lee Fuller"
+      },
+      "description": "Lovely",
+      "image": "https://picsum.photos/id/32/200/300",
+      "numberOfLikes": 54,
+      "numberOfShares": 8
+    }
+  ]
+}
