@@ -10,6 +10,7 @@ const FeedScreen = () => {
   const navigation = useNavigation();
 
   const createPost = () => {
+    navigation.navigate("CreatePost");
     console.log("create a new post");
   };
 
