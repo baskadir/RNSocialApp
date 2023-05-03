@@ -19,6 +19,7 @@ import {
 } from "@expo/vector-icons";
 import user from "../../assets/data/user.json";
 import DefaultImage from "../../assets/images/default-user.jpg";
+import { Auth } from "aws-amplify";
 
 const bg = "https://picsum.photos/200/300/?blur=2";
 const profilePictureWidth = Dimensions.get("window").width * 0.4;
@@ -26,8 +27,8 @@ const profilePictureWidth = Dimensions.get("window").width * 0.4;
 const ProfileScreenHeader = ({ user, isMe = false }) => {
   const navigation = useNavigation();
 
-  const signOut = async () => {
-    console.warn("Sign Out");
+  const signOut = () => {
+    Auth.signOut();
   };
 
   const goToEditProfile = () => navigation.navigate("EditProfile");
