@@ -14,6 +14,8 @@ import { Entypo } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useNavigation } from "@react-navigation/native";
 import DefaultUser from "../../assets/images/default-user.jpg";
+import { DataStore } from "aws-amplify";
+import { Post } from "../models";
 
 const user = {
   id: "u1",
@@ -28,8 +30,17 @@ const CreatePostScreen = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
 
-  const onPostSubmit = () => {
-    console.log("Post submitted", description);
+  const onPostSubmit = async () => {
+    let newPost = {
+      description: description,
+      numberOfLikes: 1020,
+      numberOfShares: 1020,
+      postUserId: user.id,
+      _version: 1
+    }
+
+    await DataStore.save(new Post(newPost));
+
     setDescription("");
     setImage(null);
 
