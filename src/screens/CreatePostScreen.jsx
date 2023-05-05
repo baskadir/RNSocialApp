@@ -8,27 +8,37 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Entypo } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useNavigation } from "@react-navigation/native";
 import DefaultUser from "../../assets/images/default-user.jpg";
-import { DataStore } from "aws-amplify";
-import { Post } from "../models";
-
-const user = {
-  id: "u1",
-  image: DefaultUser,
-  name: "Lee Fuller",
-};
+import { DataStore, Auth } from "aws-amplify";
+import { Post, User } from "../models";
 
 const CreatePostScreen = () => {
   const [description, setDescription] = useState("");
   const [image, setImage] = useState(null);
+  const [user, setUser] = useState();
 
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const userData = await Auth.currentAuthenticatedUser();
+      const dbUser = await DataStore.query(User, userData.attributes.sub);
+      if (dbUser) {
+        setUser(dbUser);
+        console.log(dbUser);
+      } else {
+        navigation.navigate("EditProfile");
+      }
+    };
+
+    fetchUser();
+  }, []);
 
   const onPostSubmit = async () => {
     let newPost = {
@@ -36,8 +46,8 @@ const CreatePostScreen = () => {
       numberOfLikes: 1020,
       numberOfShares: 1020,
       postUserId: user.id,
-      _version: 1
-    }
+      _version: 1,
+    };
 
     await DataStore.save(new Post(newPost));
 
@@ -71,8 +81,8 @@ const CreatePostScreen = () => {
       keyboardVerticalOffset={150}
     >
       <View style={styles.header}>
-        <Image source={user.image} style={styles.profileImage} />
-        <Text style={styles.name}>{user.name}</Text>
+        <Image source={user?.image} style={styles.profileImage} />
+        <Text style={styles.name}>{user?.name}</Text>
         <Entypo
           onPress={pickImage}
           name="images"

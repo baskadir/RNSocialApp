@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -17,9 +18,9 @@ import {
   Ionicons,
   Entypo,
 } from "@expo/vector-icons";
-import user from "../../assets/data/user.json";
 import DefaultImage from "../../assets/images/default-user.jpg";
-import { Auth } from "aws-amplify";
+import { Auth, DataStore } from "aws-amplify";
+import { User, Post } from "../models";
 
 const bg = "https://picsum.photos/200/300/?blur=2";
 const profilePictureWidth = Dimensions.get("window").width * 0.4;
@@ -101,14 +102,52 @@ const ProfileScreenHeader = ({ user, isMe = false }) => {
 };
 
 const ProfileScreen = () => {
+  const navigation = useNavigation();
   const route = useRoute();
+  const [user, setUser] = useState(null);
+  const [posts, setPosts] = useState([]);
+
   console.log("User: ", route?.params?.id);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      // get the authenticated user
+      const userData = await Auth.currentAuthenticatedUser();
+      const userId = route?.params?.id;
+
+      if (!userId) return;
+
+      // keep track if we are querying the data about the authenticated user
+      const isMe = userId === userData.attributes.sub;
+      // query the db user
+      const dbUser = await DataStore.query(User, userId);
+      if (!dbUser) {
+        if (isMe) {
+          navigation.navigate("UpdateProfile");
+        } else {
+          Alert.alert("User not found");
+        }
+
+        return;
+      }
+      // save the user in the state
+      setUser(dbUser);
+
+      // Query current users posts
+      const dbPosts = await DataStore.query(Post, (p) =>
+        p.postUserId.eq(userId)
+      );
+      setPosts(dbPosts);
+    };
+
+    fetchData();
+  }, []);
 
   const renderPosts = ({ item }) => <FeedPost post={item} />;
 
   return (
     <FlatList
-      data={user.posts}
+      data={posts}
       renderItem={renderPosts}
       showsVerticalScrollIndicator={false}
       ListHeaderComponent={() => (

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -13,11 +13,59 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
 import DefaultImage from "../../assets/images/default-user.jpg";
+import { API, graphqlOperation, Auth, DataStore } from "aws-amplify";
+import { User } from "../models";
+import { useNavigation } from "@react-navigation/native";
+
+const createUser = `
+  mutation CreateUser($input: CreateUserInput!) {
+    createUser(input: $input) {
+      id
+      createdAt
+      updatedAt
+      name
+      image
+      _version
+      _lastChangedAt
+      _deleted
+    }
+  }
+`;
 
 const EditProfileScreen = () => {
   const [name, setName] = useState("");
   const [image, setImage] = useState(null);
+  const [user, setUser] = useState(null);
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const userData = await Auth.currentAuthenticatedUser();
+      const dbUser = await DataStore.query(User, userData.attributes.sub);
+      setUser(dbUser);
+      setName(dbUser.name);
+    };
+
+    fetchUser();
+  }, []);
+
+  const handleSave = async () => {
+    if (user) {
+      await updateUser();
+    } else {
+      await createNewUser();
+    }
+    navigation.navigate("Feed");
+  };
+
+  const updateUser = async () => {
+    await DataStore.save(
+      User.copyOf(user, (updated) => {
+        updated.name = name;
+      })
+    );
+  };
 
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -32,8 +80,17 @@ const EditProfileScreen = () => {
     }
   };
 
-  const handleSave = () => {
-    console.log("Save the user profile");
+  const createNewUser = async () => {
+    const userData = await Auth.currentAuthenticatedUser();
+
+    const newUser = {
+      id: userData.attributes.sub,
+      name,
+      image: "image",
+      _version: 1,
+    };
+
+    await API.graphql(graphqlOperation(createUser, { input: newUser }));
   };
 
   return (
@@ -43,21 +100,24 @@ const EditProfileScreen = () => {
       contentContainerStyle={{ flex: 1 }}
       keyboardVerticalOffset={100}
     >
-        <Pressable onPress={pickImage} style={styles.imagePickerContainer}>
-            <Image source={image ? {uri: image} :  DefaultImage} style={styles.image} />
-            <Text>Change Photo</Text>
-        </Pressable>
+      <Pressable onPress={pickImage} style={styles.imagePickerContainer}>
+        {/* <Image
+          source={{ uri: image || user?.image || DefaultImage }}
+          style={styles.image}
+        /> */}
+        <Text>Change Photo</Text>
+      </Pressable>
 
-        <TextInput
-            placeholder="Full Name"
-            style={styles.input}
-            value={name}
-            onChangeText={setName}
-        />
+      <TextInput
+        placeholder="Full Name"
+        style={styles.input}
+        value={name}
+        onChangeText={setName}
+      />
 
-        <View style={styles.buttonContainer}>
-            <Button onPress={handleSave} title="Save" disabled={!name} />
-        </View>
+      <View style={styles.buttonContainer}>
+        <Button onPress={handleSave} title="Save" disabled={!name} />
+      </View>
     </KeyboardAvoidingView>
   );
 };

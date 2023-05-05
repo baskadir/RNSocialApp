@@ -1,18 +1,30 @@
+import { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import PostHeader from "./PostHeader";
 import PostBody from "./PostBody";
 import PostFooter from "./PostFooter";
+import { DataStore } from "aws-amplify";
+import { User } from "../../models";
 
 const FeedPost = ({ post }) => {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    if (!post.postUserId) {
+      return;
+    }
+    DataStore.query(User, post.postUserId).then((data) => setUser(data));
+  }, [post.postUserId]);
+
   return (
     <View style={styles.container}>
       {/* Post Header with details about the author */}
-      {/* <PostHeader
-        userId={post.User.id}
-        userImage={post.User.image}
-        userName={post.User.name}
-        createdAt={post.createdAt}
-      /> */}
+      <PostHeader
+        userId={post.postUserId}
+        userImage={user?.image}
+        userName={user?.name}
+        createdAt={user?.createdAt}
+      />
 
       {/* Post body with description and image */}
       <PostBody description={post.description} postImage={post.image} />
