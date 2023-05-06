@@ -8,7 +8,7 @@ import { FontAwesome } from "@expo/vector-icons";
 
 const Stack = createNativeStackNavigator();
 
-const MainNavigatior = () => {
+const MainNavigatior = ({user}) => {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Feed">
@@ -16,9 +16,10 @@ const MainNavigatior = () => {
           name="Feed"
           component={FeedScreen}
           options={({ navigation }) => ({
+            title: "Your Feed",
             headerRight: () => (
               <FontAwesome
-                onPress={() => navigation.navigate("Profile")}
+                onPress={() => navigation.navigate("Profile", {id: user.attributes.sub})}
                 name="user"
                 size={24}
                 color="gray"
@@ -26,9 +27,9 @@ const MainNavigatior = () => {
             ),
           })}
         />
-        <Stack.Screen name="Profile" component={ProfileScreen} />
-        <Stack.Screen name="CreatePost" component={CreatePostScreen} />
-        <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+        <Stack.Screen name="Profile" component={ProfileScreen} options={{title: "My Profile"}}  />
+        <Stack.Screen name="CreatePost" component={CreatePostScreen} options={{title: "Create New Post"}} />
+        <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{title: "Edit Profile"}} />
       </Stack.Navigator>
     </NavigationContainer>
   );

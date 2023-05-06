@@ -12,10 +12,13 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
-import DefaultImage from "../../assets/images/default-user.jpg";
+import DefaultUserImage from "../../assets/images/default-user.png";
 import { API, graphqlOperation, Auth, DataStore } from "aws-amplify";
 import { User } from "../models";
 import { useNavigation } from "@react-navigation/native";
+import { v4 as uuidv4 } from "uuid";
+import { Storage } from "@aws-amplify/storage";
+import { S3Image } from "aws-amplify-react-native";
 
 const createUser = `
   mutation CreateUser($input: CreateUserInput!) {
@@ -44,7 +47,7 @@ const EditProfileScreen = () => {
       const userData = await Auth.currentAuthenticatedUser();
       const dbUser = await DataStore.query(User, userData.attributes.sub);
       setUser(dbUser);
-      setName(dbUser.name);
+      setName(dbUser?.name);
     };
 
     fetchUser();
@@ -59,10 +62,33 @@ const EditProfileScreen = () => {
     navigation.navigate("Feed");
   };
 
+  const createNewUser = async () => {
+    const userData = await Auth.currentAuthenticatedUser();
+
+    const newUser = {
+      id: userData.attributes.sub,
+      name,
+      _version: 1,
+    };
+
+    if(image) {
+      newUser.image = await uploadFile(image);
+    }
+
+    await API.graphql(graphqlOperation(createUser, { input: newUser }));
+  };
+
   const updateUser = async () => {
+    let imageKey = "";
+    if(image) {
+      imageKey = await uploadFile(image);
+    }
     await DataStore.save(
       User.copyOf(user, (updated) => {
         updated.name = name;
+        if (imageKey) {
+          updated.image = imageKey;
+        }
       })
     );
   };
@@ -80,18 +106,26 @@ const EditProfileScreen = () => {
     }
   };
 
-  const createNewUser = async () => {
-    const userData = await Auth.currentAuthenticatedUser();
-
-    const newUser = {
-      id: userData.attributes.sub,
-      name,
-      image: "image",
-      _version: 1,
-    };
-
-    await API.graphql(graphqlOperation(createUser, { input: newUser }));
+  const uploadFile = async (fileUri) => {
+    try {
+      const response = await fetch(fileUri);
+      const blob = await response.blob();
+      const key = `${uuidv4()}.png`;
+      await Storage.put(key, blob, {
+        contentType: "image/png",
+      });
+      return key;
+    } catch (err) {
+      console.log("Error uploading file: ", err);
+    }
   };
+
+  let renderImage = <Image source={DefaultUserImage} style={styles.image} />;
+  if (image) {
+    renderImage = <Image source={{ uri: image }} style={styles.image} />;
+  } else if (user?.image) {
+    renderImage = <S3Image imgKey={user.image} style={styles.image} />;
+  }
 
   return (
     <KeyboardAvoidingView
@@ -101,10 +135,7 @@ const EditProfileScreen = () => {
       keyboardVerticalOffset={100}
     >
       <Pressable onPress={pickImage} style={styles.imagePickerContainer}>
-        {/* <Image
-          source={{ uri: image || user?.image || DefaultImage }}
-          style={styles.image}
-        /> */}
+        {renderImage}
         <Text>Change Photo</Text>
       </Pressable>
 
@@ -141,7 +172,7 @@ const styles = StyleSheet.create({
     borderRadius: 500,
   },
   input: {
-    borderColor: "lightgrayVa",
+    borderColor: "lightgray",
     borderBottomWidth: StyleSheet.hairlineWidth,
     width: "100%",
     marginVertical: 10,

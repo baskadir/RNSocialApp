@@ -18,9 +18,11 @@ import {
   Ionicons,
   Entypo,
 } from "@expo/vector-icons";
-import DefaultImage from "../../assets/images/default-user.jpg";
+import DefaultUserImage from "../../assets/images/default-user.png";
 import { Auth, DataStore } from "aws-amplify";
 import { User, Post } from "../models";
+import { Alert } from "react-native";
+import { S3Image } from "aws-amplify-react-native";
 
 const bg = "https://picsum.photos/200/300/?blur=2";
 const profilePictureWidth = Dimensions.get("window").width * 0.4;
@@ -41,10 +43,11 @@ const ProfileScreenHeader = ({ user, isMe = false }) => {
   return (
     <View style={styles.container}>
       <Image source={{ uri: bg }} style={styles.bg} />
-      <Image
-        source={user.image ? { uri: user?.image } : DefaultImage}
-        style={styles.image}
-      />
+      {user?.image ? (
+        <S3Image imgKey={user.image} style={styles.image} />
+      ) : (
+        <Image source={DefaultUserImage} style={styles.image} />
+      )}
 
       <Text style={styles.name}>{user.name}</Text>
 
@@ -106,8 +109,7 @@ const ProfileScreen = () => {
   const route = useRoute();
   const [user, setUser] = useState(null);
   const [posts, setPosts] = useState([]);
-
-  console.log("User: ", route?.params?.id);
+  const [isMe, setIsMe] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -118,12 +120,12 @@ const ProfileScreen = () => {
       if (!userId) return;
 
       // keep track if we are querying the data about the authenticated user
-      const isMe = userId === userData.attributes.sub;
+      setIsMe(userId === userData.attributes.sub);
       // query the db user
       const dbUser = await DataStore.query(User, userId);
       if (!dbUser) {
         if (isMe) {
-          navigation.navigate("UpdateProfile");
+          navigation.navigate("EditProfile");
         } else {
           Alert.alert("User not found");
         }
@@ -135,7 +137,7 @@ const ProfileScreen = () => {
 
       // Query current users posts
       const dbPosts = await DataStore.query(Post, (p) =>
-        p.postUserId.eq(userId)
+        p.postUserId("eq", userId)
       );
       setPosts(dbPosts);
     };
@@ -152,7 +154,7 @@ const ProfileScreen = () => {
       showsVerticalScrollIndicator={false}
       ListHeaderComponent={() => (
         <>
-          <ProfileScreenHeader user={user} isMe={true} />
+          <ProfileScreenHeader user={user} isMe={isMe} />
           <Text style={styles.sectionTitle}>Posts</Text>
         </>
       )}

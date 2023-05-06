@@ -1,13 +1,13 @@
-import { StyleSheet, Text, Image } from "react-native";
-import React from "react";
+import { StyleSheet, Text } from "react-native";
+import { S3Image } from "aws-amplify-react-native";
 
 const PostBody = ({ description, postImage }) => {
   return (
     <>
       {description && <Text style={styles.description}>{description}</Text>}
       {postImage && (
-        <Image
-          source={{ uri: postImage }}
+        <S3Image
+          imgKey={postImage}
           style={styles.postImage}
           resizeMode="cover"
         />

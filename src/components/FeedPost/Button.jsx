@@ -1,6 +1,5 @@
 import { StyleSheet, Text, Pressable } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import React from "react";
 
 const Button = ({ handlePress, iconName, color, size, text }) => {
   return (

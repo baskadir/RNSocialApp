@@ -18,7 +18,7 @@ function App() {
 
   return (
     <SafeAreaProvider style={styles.container}>
-      <MainNavigatior />
+      <MainNavigatior user={authUser} />
       <StatusBar style="auto" />
     </SafeAreaProvider>
   );

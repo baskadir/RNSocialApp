@@ -1,3 +1,4 @@
+import "react-native-get-random-values";
 import {
   StyleSheet,
   Text,
@@ -13,14 +14,17 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Entypo } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useNavigation } from "@react-navigation/native";
-import DefaultUser from "../../assets/images/default-user.jpg";
+import DefaultUserImage from "../../assets/images/default-user.png";
 import { DataStore, Auth } from "aws-amplify";
 import { Post, User } from "../models";
+import { Storage } from "@aws-amplify/storage";
+import { v4 as uuidv4 } from "uuid";
+import { S3Image } from "aws-amplify-react-native";
 
 const CreatePostScreen = () => {
   const [description, setDescription] = useState("");
   const [image, setImage] = useState(null);
-  const [user, setUser] = useState();
+  const [user, setUser] = useState(null);
 
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
@@ -31,7 +35,6 @@ const CreatePostScreen = () => {
       const dbUser = await DataStore.query(User, userData.attributes.sub);
       if (dbUser) {
         setUser(dbUser);
-        console.log(dbUser);
       } else {
         navigation.navigate("EditProfile");
       }
@@ -41,13 +44,17 @@ const CreatePostScreen = () => {
   }, []);
 
   const onPostSubmit = async () => {
-    let newPost = {
+    const newPost = {
       description: description,
-      numberOfLikes: 1020,
-      numberOfShares: 1020,
+      numberOfLikes: 0,
+      numberOfShares: 0,
       postUserId: user.id,
       _version: 1,
     };
+
+    if (image) {
+      newPost.image = await uploadFile(image);
+    }
 
     await DataStore.save(new Post(newPost));
 
@@ -66,10 +73,22 @@ const CreatePostScreen = () => {
       quality: 1,
     });
 
-    console.log(result);
-
     if (!result.canceled) {
       setImage(result.assets[0].uri);
+    }
+  };
+
+  const uploadFile = async (fileUri) => {
+    try {
+      const response = await fetch(fileUri);
+      const blob = await response.blob();
+      const key = `${uuidv4()}.png`;
+      await Storage.put(key, blob, {
+        contentType: "image/png", // optional
+      });
+      return key;
+    } catch (err) {
+      console.log("Error uploading file: ", err);
     }
   };
 
@@ -81,7 +100,11 @@ const CreatePostScreen = () => {
       keyboardVerticalOffset={150}
     >
       <View style={styles.header}>
-        <Image source={user?.image} style={styles.profileImage} />
+        {user?.image ? (
+          <S3Image imgKey={user.image} style={styles.profileImage} />
+        ) : (
+          <Image source={DefaultUserImage} style={styles.profileImage} />
+        )}
         <Text style={styles.name}>{user?.name}</Text>
         <Entypo
           onPress={pickImage}

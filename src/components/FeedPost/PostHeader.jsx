@@ -1,6 +1,8 @@
 import { StyleSheet, Text, View, Image, Pressable } from "react-native";
 import { Entypo } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import { S3Image } from "aws-amplify-react-native";
+import DefaultUserImage from "../../../assets/images/default-user.png";
 
 const PostHeader = ({ userImage, userName, userId, createdAt }) => {
   const navigation = useNavigation();
@@ -9,7 +11,11 @@ const PostHeader = ({ userImage, userName, userId, createdAt }) => {
 
   return (
     <Pressable onPress={goToUser} style={styles.container}>
-      <Image source={{ uri: userImage }} style={styles.profileImage} />
+      {userImage ? (
+        <S3Image imgKey={userImage} style={styles.profileImage} />
+      ) : (
+        <Image source={DefaultUserImage} style={styles.profileImage} />
+      )}
       <View>
         <Text style={styles.name}>{userName}</Text>
         <Text style={styles.subtitle}>{createdAt}</Text>
