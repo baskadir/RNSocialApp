@@ -4,7 +4,7 @@ import { useNavigation } from "@react-navigation/native";
 import { S3Image } from "aws-amplify-react-native";
 import DefaultUserImage from "../../../assets/images/default-user.png";
 
-const PostHeader = ({ userImage, userName, userId, createdAt }) => {
+const PostHeader = ({ userImage, userName, userId, postCreatedAt }) => {
   const navigation = useNavigation();
 
   const goToUser = () => navigation.navigate("Profile", { id: userId });
@@ -18,7 +18,7 @@ const PostHeader = ({ userImage, userName, userId, createdAt }) => {
       )}
       <View>
         <Text style={styles.name}>{userName}</Text>
-        <Text style={styles.subtitle}>{createdAt}</Text>
+        <Text style={styles.subtitle}>{postCreatedAt}</Text>
       </View>
       <Entypo
         name="dots-three-horizontal"

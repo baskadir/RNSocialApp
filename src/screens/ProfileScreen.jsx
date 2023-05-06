@@ -19,7 +19,7 @@ import {
   Entypo,
 } from "@expo/vector-icons";
 import DefaultUserImage from "../../assets/images/default-user.png";
-import { Auth, DataStore } from "aws-amplify";
+import { Auth, DataStore, SortDirection } from "aws-amplify";
 import { User, Post } from "../models";
 import { Alert } from "react-native";
 import { S3Image } from "aws-amplify-react-native";
@@ -137,8 +137,10 @@ const ProfileScreen = () => {
 
       // Query current users posts
       const dbPosts = await DataStore.query(Post, (p) =>
-        p.postUserId("eq", userId)
+        p.postUserId("eq", userId),
+        {sort: (s) => s.createdAt(SortDirection.DESCENDING)}
       );
+
       setPosts(dbPosts);
     };
 

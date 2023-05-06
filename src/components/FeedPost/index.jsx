@@ -23,7 +23,7 @@ const FeedPost = ({ post }) => {
         userId={post.postUserId}
         userImage={user?.image}
         userName={user?.name}
-        createdAt={user?.createdAt}
+        postCreatedAt={post?.createdAt}
       />
 
       {/* Post body with description and image */}

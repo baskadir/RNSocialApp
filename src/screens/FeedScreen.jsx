@@ -5,7 +5,7 @@ import { Text, FlatList, Pressable, StyleSheet, Image } from "react-native";
 import FeedPost from "../components/FeedPost";
 import DefaultUserImage from "../../assets/images/default-user.png";
 import { Entypo } from "@expo/vector-icons";
-import { DataStore } from "aws-amplify";
+import { DataStore, Predicates, SortDirection } from "aws-amplify";
 import { Post } from "../models";
 
 const FeedScreen = () => {
@@ -14,7 +14,11 @@ const FeedScreen = () => {
   const [posts, setPosts] = useState([]);
 
   useEffect(() => {
-    DataStore.query(Post).then(setPosts);
+    const subscription = DataStore.observeQuery(Post, Predicates.ALL, {
+      sort: (s) => s.createdAt(SortDirection.DESCENDING),
+    }).subscribe(({ items }) => setPosts(items));
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const createPost = () => {

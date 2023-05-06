@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, Image } from "react-native";
-import LikeImage from "../../../assets/images/like-image.jpg";
+import LikeIcon from "../../../assets/images/like-image.jpg";
 import React, { useState } from "react";
 import Button from "./Button";
 
@@ -10,10 +10,15 @@ const PostFooter = ({ numberOfLikes, numberOfShares }) => {
     <View style={styles.container}>
       {/* Stats */}
       <View style={styles.stats}>
-        <Image source={LikeImage} style={styles.likeIcon} />
-        <Text style={styles.likedBy}>
-          Kadir, Selin and {numberOfLikes} others
-        </Text>
+        {numberOfLikes !== 0 ?
+          (
+            <>
+              <Image source={LikeIcon} style={styles.likeIcon} />
+              <Text style={styles.likedBy}>
+                {numberOfLikes} likes
+              </Text>
+            </>
+          ) : null}
         <Text style={styles.shares}>{numberOfShares} shares</Text>
       </View>
 
