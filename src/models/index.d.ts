@@ -51,7 +51,9 @@ type EagerUser = {
   };
   readonly id: string;
   readonly name: string;
-  readonly image: string;
+  readonly image?: string | null;
+  readonly location?: string | null;
+  readonly graduation?: string | null;
   readonly createdAt?: string | null;
   readonly updatedAt?: string | null;
 }
@@ -63,7 +65,9 @@ type LazyUser = {
   };
   readonly id: string;
   readonly name: string;
-  readonly image: string;
+  readonly image?: string | null;
+  readonly location?: string | null;
+  readonly graduation?: string | null;
   readonly createdAt?: string | null;
   readonly updatedAt?: string | null;
 }

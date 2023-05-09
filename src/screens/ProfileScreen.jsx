@@ -23,6 +23,7 @@ import { Auth, DataStore, SortDirection } from "aws-amplify";
 import { User, Post } from "../models";
 import { Alert } from "react-native";
 import { S3Image } from "aws-amplify-react-native";
+import { formatDate } from "../helpers";
 
 const bg = "https://picsum.photos/200/300/?blur=2";
 const profilePictureWidth = Dimensions.get("window").width * 0.4;
@@ -76,30 +77,34 @@ const ProfileScreenHeader = ({ user, isMe = false }) => {
         </>
       )}
 
-      <View style={styles.textLine}>
-        <Entypo
-          name="graduation-cap"
-          size={18}
-          color="gray"
-          style={{ width: 25 }}
-        />
-        <Text>Graduated university</Text>
-      </View>
+      {user?.graduation && (
+        <View style={styles.textLine}>
+          <Entypo
+            name="graduation-cap"
+            size={18}
+            color="gray"
+            style={{ width: 25 }}
+          />
+          <Text>Graduated {user.graduation}</Text>
+        </View>
+      )}
 
       <View style={styles.textLine}>
         <Ionicons name="time" size={18} color="gray" style={{ width: 25 }} />
-        <Text>Joined on April 2020</Text>
+        <Text>Joined on {formatDate(user?.createdAt)}</Text>
       </View>
 
-      <View style={styles.textLine}>
-        <Entypo
-          name="location-pin"
-          size={18}
-          color="gray"
-          style={{ width: 25 }}
-        />
-        <Text>From Turkey</Text>
-      </View>
+      {user?.location && (
+        <View style={styles.textLine}>
+          <Entypo
+            name="location-pin"
+            size={18}
+            color="gray"
+            style={{ width: 25 }}
+          />
+          <Text>From {user.location}</Text>
+        </View>
+      )}
     </View>
   );
 };
@@ -136,9 +141,10 @@ const ProfileScreen = () => {
       setUser(dbUser);
 
       // Query current users posts
-      const dbPosts = await DataStore.query(Post, (p) =>
-        p.postUserId("eq", userId),
-        {sort: (s) => s.createdAt(SortDirection.DESCENDING)}
+      const dbPosts = await DataStore.query(
+        Post,
+        (p) => p.postUserId("eq", userId),
+        { sort: (s) => s.createdAt(SortDirection.DESCENDING) }
       );
 
       setPosts(dbPosts);

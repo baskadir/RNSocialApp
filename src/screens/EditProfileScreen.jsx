@@ -39,6 +39,8 @@ const EditProfileScreen = () => {
   const [name, setName] = useState("");
   const [image, setImage] = useState(null);
   const [user, setUser] = useState(null);
+  const [location, setLocation] = useState("");
+  const [graduation, setGraduation] = useState("");
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
 
@@ -48,6 +50,8 @@ const EditProfileScreen = () => {
       const dbUser = await DataStore.query(User, userData.attributes.sub);
       setUser(dbUser);
       setName(dbUser?.name);
+      setGraduation(dbUser?.graduation);
+      setLocation(dbUser?.location);
     };
 
     fetchUser();
@@ -68,10 +72,12 @@ const EditProfileScreen = () => {
     const newUser = {
       id: userData.attributes.sub,
       name,
+      location,
+      graduation,
       _version: 1,
     };
 
-    if(image) {
+    if (image) {
       newUser.image = await uploadFile(image);
     }
 
@@ -80,12 +86,15 @@ const EditProfileScreen = () => {
 
   const updateUser = async () => {
     let imageKey = "";
-    if(image) {
+    if (image) {
       imageKey = await uploadFile(image);
     }
+
     await DataStore.save(
       User.copyOf(user, (updated) => {
         updated.name = name;
+        updated.location = location;
+        updated.graduation = graduation;
         if (imageKey) {
           updated.image = imageKey;
         }
@@ -144,6 +153,20 @@ const EditProfileScreen = () => {
         style={styles.input}
         value={name}
         onChangeText={setName}
+      />
+
+      <TextInput
+        placeholder="Location"
+        style={styles.input}
+        value={location}
+        onChangeText={setLocation}
+      />
+
+      <TextInput
+        placeholder="Graduation"
+        style={styles.input}
+        value={graduation}
+        onChangeText={setGraduation}
       />
 
       <View style={styles.buttonContainer}>
