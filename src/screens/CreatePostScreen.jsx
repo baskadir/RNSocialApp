@@ -9,7 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Entypo } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
@@ -20,27 +20,20 @@ import { Post, User } from "../models";
 import { Storage } from "@aws-amplify/storage";
 import { v4 as uuidv4 } from "uuid";
 import { S3Image } from "aws-amplify-react-native";
+import { UserContext } from "../contexts/UserContext";
 
 const CreatePostScreen = () => {
   const [description, setDescription] = useState("");
   const [image, setImage] = useState(null);
-  const [user, setUser] = useState(null);
+  const { user } = useContext(UserContext);
 
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const userData = await Auth.currentAuthenticatedUser();
-      const dbUser = await DataStore.query(User, userData.attributes.sub);
-      if (dbUser) {
-        setUser(dbUser);
-      } else {
-        navigation.navigate("EditProfile");
-      }
-    };
-
-    fetchUser();
+    if (!user) {
+      navigation.navigate("EditProfile");
+    }
   }, []);
 
   const onPostSubmit = async () => {

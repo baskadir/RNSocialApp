@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -24,6 +24,7 @@ import { User, Post } from "../models";
 import { Alert } from "react-native";
 import { S3Image } from "aws-amplify-react-native";
 import { formatDate } from "../helpers";
+import { UserContext } from "../contexts/UserContext";
 
 const bg = "https://picsum.photos/200/300/?blur=2";
 const profilePictureWidth = Dimensions.get("window").width * 0.4;
@@ -112,22 +113,22 @@ const ProfileScreenHeader = ({ user, isMe = false }) => {
 const ProfileScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const [user, setUser] = useState(null);
+  const { sub, user, setUser } = useContext(UserContext);
   const [posts, setPosts] = useState([]);
   const [isMe, setIsMe] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       // get the authenticated user
-      const userData = await Auth.currentAuthenticatedUser();
       const userId = route?.params?.id;
 
       if (!userId) return;
 
       // keep track if we are querying the data about the authenticated user
-      setIsMe(userId === userData.attributes.sub);
+      setIsMe(userId === sub);
       // query the db user
       const dbUser = await DataStore.query(User, userId);
+
       if (!dbUser) {
         if (isMe) {
           navigation.navigate("EditProfile");

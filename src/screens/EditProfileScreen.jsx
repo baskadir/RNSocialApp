@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import {
   View,
   Text,
@@ -13,12 +13,13 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
 import DefaultUserImage from "../../assets/images/default-user.png";
-import { API, graphqlOperation, Auth, DataStore } from "aws-amplify";
+import { API, graphqlOperation, DataStore } from "aws-amplify";
 import { User } from "../models";
 import { useNavigation } from "@react-navigation/native";
 import { v4 as uuidv4 } from "uuid";
 import { Storage } from "@aws-amplify/storage";
 import { S3Image } from "aws-amplify-react-native";
+import { UserContext } from "../contexts/UserContext";
 
 const createUser = `
   mutation CreateUser($input: CreateUserInput!) {
@@ -38,23 +39,16 @@ const createUser = `
 const EditProfileScreen = () => {
   const [name, setName] = useState("");
   const [image, setImage] = useState(null);
-  const [user, setUser] = useState(null);
   const [location, setLocation] = useState("");
   const [graduation, setGraduation] = useState("");
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
+  const { sub, user } = useContext(UserContext);
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const userData = await Auth.currentAuthenticatedUser();
-      const dbUser = await DataStore.query(User, userData.attributes.sub);
-      setUser(dbUser);
-      setName(dbUser?.name);
-      setGraduation(dbUser?.graduation);
-      setLocation(dbUser?.location);
-    };
-
-    fetchUser();
+    setName(user?.name);
+    setGraduation(user?.graduation);
+    setLocation(user?.location);
   }, []);
 
   const handleSave = async () => {
@@ -67,10 +61,8 @@ const EditProfileScreen = () => {
   };
 
   const createNewUser = async () => {
-    const userData = await Auth.currentAuthenticatedUser();
-
     const newUser = {
-      id: userData.attributes.sub,
+      id: sub,
       name,
       location,
       graduation,

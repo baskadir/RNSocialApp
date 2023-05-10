@@ -5,10 +5,14 @@ import ProfileScreen from "../screens/ProfileScreen";
 import CreatePostScreen from "../screens/CreatePostScreen";
 import EditProfileScreen from "../screens/EditProfileScreen";
 import { FontAwesome } from "@expo/vector-icons";
+import { UserContext } from "../contexts/UserContext";
+import { useContext } from "react";
 
 const Stack = createNativeStackNavigator();
 
-const MainNavigatior = ({user}) => {
+const MainNavigatior = () => {
+  const { sub } = useContext(UserContext);
+
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Feed">
@@ -19,7 +23,7 @@ const MainNavigatior = ({user}) => {
             title: "Your Feed",
             headerRight: () => (
               <FontAwesome
-                onPress={() => navigation.navigate("Profile", {id: user.attributes.sub})}
+                onPress={() => navigation.navigate("Profile", { id: sub })}
                 name="user"
                 size={24}
                 color="gray"
@@ -27,9 +31,21 @@ const MainNavigatior = ({user}) => {
             ),
           })}
         />
-        <Stack.Screen name="Profile" component={ProfileScreen} options={{title: "My Profile"}}  />
-        <Stack.Screen name="CreatePost" component={CreatePostScreen} options={{title: "Create New Post"}} />
-        <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{title: "Edit Profile"}} />
+        <Stack.Screen
+          name="Profile"
+          component={ProfileScreen}
+          options={{ title: "My Profile" }}
+        />
+        <Stack.Screen
+          name="CreatePost"
+          component={CreatePostScreen}
+          options={{ title: "Create New Post" }}
+        />
+        <Stack.Screen
+          name="EditProfile"
+          component={EditProfileScreen}
+          options={{ title: "Edit Profile" }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
