@@ -31,6 +31,7 @@ const FeedPost = ({ post }) => {
 
       {/* Post footer with likes and button */}
       <PostFooter
+        postId={post.id}
         numberOfLikes={post.numberOfLikes}
         numberOfShares={post.numberOfShares}
       />

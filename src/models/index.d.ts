@@ -6,6 +6,36 @@ import { LazyLoading, LazyLoadingDisabled, AsyncItem } from "@aws-amplify/datast
 
 
 
+type EagerUsersLike = {
+  readonly [__modelMeta__]: {
+    identifier: ManagedIdentifier<UsersLike, 'id'>;
+    readOnlyFields: 'createdAt' | 'updatedAt';
+  };
+  readonly id: string;
+  readonly postId?: string | null;
+  readonly userId?: string | null;
+  readonly createdAt?: string | null;
+  readonly updatedAt?: string | null;
+}
+
+type LazyUsersLike = {
+  readonly [__modelMeta__]: {
+    identifier: ManagedIdentifier<UsersLike, 'id'>;
+    readOnlyFields: 'createdAt' | 'updatedAt';
+  };
+  readonly id: string;
+  readonly postId?: string | null;
+  readonly userId?: string | null;
+  readonly createdAt?: string | null;
+  readonly updatedAt?: string | null;
+}
+
+export declare type UsersLike = LazyLoading extends LazyLoadingDisabled ? EagerUsersLike : LazyUsersLike
+
+export declare const UsersLike: (new (init: ModelInit<UsersLike>) => UsersLike) & {
+  copyOf(source: UsersLike, mutator: (draft: MutableModel<UsersLike>) => MutableModel<UsersLike> | void): UsersLike;
+}
+
 type EagerPost = {
   readonly [__modelMeta__]: {
     identifier: ManagedIdentifier<Post, 'id'>;

@@ -1,24 +1,82 @@
 import { StyleSheet, Text, View, Image } from "react-native";
 import LikeIcon from "../../../assets/images/like-image.jpg";
-import React, { useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import Button from "./Button";
+import { DataStore } from "aws-amplify";
+import { Post, UsersLike } from "../../models";
+import { UserContext } from "../../contexts/UserContext";
 
-const PostFooter = ({ numberOfLikes, numberOfShares }) => {
+const PostFooter = ({ postId, numberOfLikes, numberOfShares }) => {
   const [isLiked, setIsLiked] = useState(false);
+  const [postLikes, setPostLikes] = useState([]);
+  const { sub } = useContext(UserContext);
+
+  useEffect(() => {
+    const subscription = DataStore.observeQuery(UsersLike, (u) =>
+      u.postId("eq", postId)
+    ).subscribe(({ items }) => {
+      setPostLikes(items);
+      if (items.length > 0) {
+        const authUserLike = items.filter((i) => i.userId === sub);
+        if (authUserLike.length > 0) {
+          setIsLiked(true);
+        }
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handlePressLike = async () => {
+    setIsLiked(!isLiked);
+    const authUserLike = postLikes.filter((pl) => pl.userId === sub);
+    if (authUserLike.length === 0) {
+      // add user like
+      await DataStore.save(
+        new UsersLike({
+          userId: sub,
+          postId: postId,
+        })
+      );
+
+      // increase like numbers
+      updatePost(postId, true);
+    } else {
+      // delete user like
+      const toDelete = await DataStore.query(UsersLike, authUserLike[0].id);
+      await DataStore.delete(toDelete);
+
+      // decrease like numbers
+      updatePost(postId);
+    }
+  };
+
+  async function updatePost(id, increased = false) {
+    const originalPost = await DataStore.query(Post, id);
+
+    if (originalPost) {
+      const updatedPost = await DataStore.save(
+        Post.copyOf(originalPost, (updated) => {
+          if (increased) {
+            updated.numberOfLikes += 1;
+          } else {
+            updated.numberOfLikes -= 1;
+          }
+        })
+      );
+    }
+  }
 
   return (
     <View style={styles.container}>
       {/* Stats */}
       <View style={styles.stats}>
-        {numberOfLikes !== 0 ?
-          (
-            <>
-              <Image source={LikeIcon} style={styles.likeIcon} />
-              <Text style={styles.likedBy}>
-                {numberOfLikes} likes
-              </Text>
-            </>
-          ) : null}
+        {numberOfLikes > 0 ? (
+          <>
+            <Image source={LikeIcon} style={styles.likeIcon} />
+            <Text style={styles.likedBy}>{numberOfLikes} likes</Text>
+          </>
+        ) : null}
         <Text style={styles.shares}>{numberOfShares} shares</Text>
       </View>
 
@@ -26,7 +84,7 @@ const PostFooter = ({ numberOfLikes, numberOfShares }) => {
       <View style={styles.buttonsRow}>
         {/* Like button */}
         <Button
-          handlePress={() => setIsLiked(!isLiked)}
+          handlePress={handlePressLike}
           iconName={isLiked ? "cards-heart" : "cards-heart-outline"}
           color={isLiked ? "royalblue" : "gray"}
           text="Like"
